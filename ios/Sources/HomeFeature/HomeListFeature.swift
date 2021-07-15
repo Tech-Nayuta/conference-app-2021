@@ -38,7 +38,7 @@ public struct HomeListEnvironment {
     }
 }
 
-public let HomeListReducer = Reducer<HomeListState, HomeListAction, HomeListEnvironment> { state, action, environment in
+public let homeListReducer = Reducer<HomeListState, HomeListAction, HomeListEnvironment> { state, action, environment in
     switch action {
     case .selectFeedContent:
         // TODO: open content page
