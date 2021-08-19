@@ -8,7 +8,7 @@ public struct ListItem: View {
     }
 
     private let title: String
-    private let media: Media
+    private let tag: Media
     private let imageURL: URL?
     // TODO: Replace with real value
     private let users: [URL]
@@ -19,7 +19,7 @@ public struct ListItem: View {
 
     public init(
         title: String,
-        media: Media,
+        tag: Media,
         imageURL: URL?,
         users: [URL],
         date: Date,
@@ -28,7 +28,7 @@ public struct ListItem: View {
         tapAction: @escaping () -> Void
     ) {
         self.title = title
-        self.media = media
+        self.tag = tag
         self.imageURL = imageURL
         self.users = users
         self.date = date
@@ -39,8 +39,9 @@ public struct ListItem: View {
 
     public var body: some View {
         VStack(alignment: .leading) {
-            Tag(media: media)
-
+            Tag(type: tag) {
+                // Set action if needed.
+            }
             HStack(alignment: .top) {
                 VStack(spacing: 8) {
                     ImageView(
@@ -105,7 +106,7 @@ public struct ListItem_Previews: PreviewProvider {
         Group {
             ListItem(
                 title: "タイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイ...",
-                media: .droidKaigiFm,
+                tag: .droidKaigiFm,
                 imageURL: nil,
                 users: [],
                 date: Date(timeIntervalSince1970: 0),
@@ -118,7 +119,7 @@ public struct ListItem_Previews: PreviewProvider {
             .environment(\.colorScheme, .dark)
             ListItem(
                 title: "タイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイ...",
-                media: .droidKaigiFm,
+                tag: .droidKaigiFm,
                 imageURL: nil,
                 users: [],
                 date: Date(timeIntervalSince1970: 0),
@@ -130,7 +131,7 @@ public struct ListItem_Previews: PreviewProvider {
             .environment(\.colorScheme, .light)
             ListItem(
                 title: "タイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイ...",
-                media: .droidKaigiFm,
+                tag: .droidKaigiFm,
                 imageURL: nil,
                 users: Array(repeating: URL(string: "https://example.com")!, count: 8),
                 date: Date(timeIntervalSince1970: 0),
@@ -143,7 +144,7 @@ public struct ListItem_Previews: PreviewProvider {
             .environment(\.colorScheme, .dark)
             ListItem(
                 title: "タイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイ...",
-                media: .droidKaigiFm,
+                tag: .droidKaigiFm,
                 imageURL: nil,
                 users: Array(repeating: URL(string: "https://example.com")!, count: 8),
                 date: Date(timeIntervalSince1970: 0),

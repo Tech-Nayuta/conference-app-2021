@@ -35,12 +35,10 @@ jobs:
       - name: Take Snapshots
         working-directory: ./ios
         run: make take-snapshots
-      - name: Create Update Snapshots PullRequest
-        uses: peter-evans/create-pull-request@v3
+      - name: Commit Snapshots
+        uses: stefanzweifel/git-auto-commit-action@v4
         with:
-          commit-message: "[iOS] Update iOS Snapshots"
-          branch: update-ios-snapshots
-          delete-branch: true
-          branch-suffix: short-commit-hash
-          title: "[iOS] Update iOS Snapshots"
-          reviewers: ry-itto,ostk0069
+          commit_message: Update iOS Snapshots
+          branch: 'main'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

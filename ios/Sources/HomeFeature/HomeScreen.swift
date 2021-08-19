@@ -119,7 +119,7 @@ private extension LargeCard {
         self.init(
             title: item.title,
             imageURL: URL(string: item.imageURLString),
-            media: item.media,
+            tag: item.media,
             date: item.publishedAt,
             isFavorited: false,
             tapAction: tapAction,
@@ -136,7 +136,7 @@ private extension ListItem {
     ) {
         self.init(
             title: item.title,
-            media: item.media,
+            tag: item.media,
             imageURL: URL(string: item.imageURLString),
             users: [],
             date: item.publishedAt,

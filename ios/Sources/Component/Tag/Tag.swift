@@ -3,21 +3,24 @@ import SwiftUI
 import Styleguide
 
 public struct Tag: View {
-    private let media: Media
+    private let type: Media
+    private let tapAction: () -> Void
 
     public init(
-        media: Media
+        type: Media,
+        tapAction: @escaping () -> Void
     ) {
-        self.media = media
+        self.type = type
+        self.tapAction = tapAction
     }
 
     public var body: some View {
-        Text(media.title)
+        Text(type.title)
             .font(.caption)
             .foregroundColor(AssetColor.Base.white.color)
             .padding(.vertical, 4)
             .padding(.horizontal, 12)
-            .background(media.backgroundColor)
+            .background(type.backgroundColor)
             .clipShape(
                 CutCornerRectangle(
                     targetCorners: [.topLeft, .bottomRight],
@@ -31,14 +34,14 @@ public struct Tag: View {
 public struct Tag_Previews: PreviewProvider {
     public static var previews: some View {
         Group {
-            ForEach(Media.allCases, id: \.self) { media in
-                Tag(media: media)
+            ForEach(Media.allCases, id: \.self) { type in
+                Tag(type: type, tapAction: {})
                     .frame(width: 103, height: 24)
                     .environment(\.colorScheme, .light)
             }
 
-            ForEach(Media.allCases, id: \.self) { media in
-                Tag(media: media)
+            ForEach(Media.allCases, id: \.self) { type in
+                Tag(type: type, tapAction: {})
                     .frame(width: 103, height: 24)
                     .environment(\.colorScheme, .dark)
             }

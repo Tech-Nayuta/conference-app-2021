@@ -31,7 +31,7 @@ public struct MediaSection: View {
                             MediumCard(
                                 title: item.title.get(by: .ja),
                                 imageURL: URL(string: item.image.standardURLString),
-                                media: item.media,
+                                tag: item.media,
                                 date: item.publishedAt,
                                 isFavorited: content.isFavorited,
                                 tapAction: {

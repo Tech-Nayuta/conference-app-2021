@@ -5,7 +5,7 @@ import Styleguide
 public struct MediumCard: View {
     private let title: String
     private let imageURL: URL?
-    private let media: Media
+    private let tag: Media
     private let date: Date
     private let isFavorited: Bool
     private let tapAction: () -> Void
@@ -14,7 +14,7 @@ public struct MediumCard: View {
     public init(
         title: String,
         imageURL: URL?,
-        media: Media,
+        tag: Media,
         date: Date,
         isFavorited: Bool,
         tapAction: @escaping () -> Void,
@@ -22,7 +22,7 @@ public struct MediumCard: View {
     ) {
         self.title = title
         self.imageURL = imageURL
-        self.media = media
+        self.tag = tag
         self.date = date
         self.isFavorited = isFavorited
         self.tapAction = tapAction
@@ -54,7 +54,9 @@ public struct MediumCard: View {
                 }
 
                 HStack(spacing: 8) {
-                    Tag(media: media)
+                    Tag(type: tag) {
+                        // do something if needed
+                    }
 
                     Spacer()
 
@@ -79,7 +81,7 @@ public struct MediumCard_Previews: PreviewProvider {
             MediumCard(
                 title: "タイトルタイトルタイトルタイトルタイタイトルタイトルタイトルタイトルタイト...",
                 imageURL: URL(string: ""),
-                media: .droidKaigiFm,
+                tag: .droidKaigiFm,
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: false,
                 tapAction: {},
@@ -91,7 +93,7 @@ public struct MediumCard_Previews: PreviewProvider {
             MediumCard(
                 title: "タイトルタイトルタイトルタイトルタイタイトルタイトルタイトルタイトルタイト...",
                 imageURL: URL(string: ""),
-                media: .medium,
+                tag: .medium,
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: true,
                 tapAction: {},
@@ -103,7 +105,7 @@ public struct MediumCard_Previews: PreviewProvider {
             MediumCard(
                 title: "タイトル",
                 imageURL: URL(string: ""),
-                media: .youtube,
+                tag: .youtube,
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: true,
                 tapAction: {},
@@ -115,7 +117,7 @@ public struct MediumCard_Previews: PreviewProvider {
             MediumCard(
                 title: "タイトルタイトルタイトルタイトルタイタイトルタイトルタイトルタイトルタイト...",
                 imageURL: URL(string: ""),
-                media: .droidKaigiFm,
+                tag: .droidKaigiFm,
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: false,
                 tapAction: {},
@@ -127,7 +129,7 @@ public struct MediumCard_Previews: PreviewProvider {
             MediumCard(
                 title: "タイトルタイトルタイトルタイトルタイタイトルタイトルタイトルタイトルタイト...",
                 imageURL: URL(string: ""),
-                media: .medium,
+                tag: .medium,
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: true,
                 tapAction: {},
@@ -139,7 +141,7 @@ public struct MediumCard_Previews: PreviewProvider {
             MediumCard(
                 title: "タイトル",
                 imageURL: URL(string: ""),
-                media: .youtube,
+                tag: .youtube,
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: true,
                 tapAction: {},
