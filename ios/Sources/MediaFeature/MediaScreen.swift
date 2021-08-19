@@ -42,7 +42,6 @@ public struct MediaScreen: View {
         case progressViewAppeared
         case searchTextDidChange(to: String)
         case isEditingDidChange(to: Bool)
-        case showSetting
     }
 
     public var body: some View {
@@ -63,13 +62,9 @@ public struct MediaScreen: View {
             }
             .navigationTitle(L10n.MediaScreen.title)
             .navigationBarItems(
-                trailing: Button(action: {
-                    viewStore.send(.showSetting)
-                }, label: {
-                    AssetImage.iconSetting.image
-                        .renderingMode(.template)
-                        .foregroundColor(AssetColor.Base.primary.color)
-                })
+                trailing: AssetImage.iconSetting.image
+                    .renderingMode(.template)
+                    .foregroundColor(AssetColor.Base.primary.color)
             )
             .introspectViewController { viewController in
                 viewController.view.backgroundColor = AssetColor.Background.primary.uiColor
@@ -92,8 +87,6 @@ private extension MediaAction {
             self = .mediaList(.searchTextDidChange(to: text))
         case let .isEditingDidChange(isEditing):
             self = .mediaList(.isEditingDidChange(to: isEditing))
-        case .showSetting:
-            self = .showSetting
         }
     }
 
