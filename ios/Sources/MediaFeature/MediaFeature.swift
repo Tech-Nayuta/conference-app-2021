@@ -3,94 +3,89 @@ import ComposableArchitecture
 import Model
 import Repository
 
-public struct MediaState: Equatable {
-    // In order not to use any networks for searching feature,
-    // `feedContents` is storage to search from & `searchedFeedContents` is searched result from `feedContents`
-    public var feedContents: [FeedContent]
-    public var searchedFeedContents: [FeedContent]?
-    var isSearchTextEditing: Bool
-    var moreActiveType: MediaType?
+public enum MediaState: Equatable {
+    case needToInitialize
+    case initialized(MediaListState)
 
-    public init(
-        feedContents: [FeedContent],
-        searchedFeedContents: [FeedContent]? = nil,
-        isSearchTextEditing: Bool = false,
-        moreActiveType: MediaType? = nil
-    ) {
-        self.feedContents = feedContents
-        self.searchedFeedContents = searchedFeedContents
-        self.isSearchTextEditing = isSearchTextEditing
-        self.moreActiveType = moreActiveType
-    }
-}
-
-// Only use to scope `Store`
-extension MediaState {
-    var blogs: [FeedContent] {
-        feedContents.filter { ($0.item.wrappedValue as? Blog) != nil }
-    }
-
-    var videos: [FeedContent] {
-        feedContents.filter { ($0.item.wrappedValue as? Video) != nil }
-    }
-
-    var podcasts: [FeedContent] {
-        feedContents.filter { ($0.item.wrappedValue as? Podcast) != nil }
+    public init() {
+        self = .needToInitialize
     }
 }
 
 public enum MediaAction {
-    case searchTextDidChange(to: String?)
-    case isEditingDidChange(to: Bool)
-    case showMore(for: MediaType)
-    case moreDismissed
-    case tap(FeedContent)
-    case tapFavorite(isFavorited: Bool, id: String)
+    case refresh
+    case refreshResponse(Result<[FeedContent], KotlinError>)
+    case mediaList(MediaListAction)
     case showSetting
 }
 
 public struct MediaEnvironment {
-    public init() {}
+    public let feedRepository: FeedRepositoryProtocol
+
+    public init(
+        feedRepository: FeedRepositoryProtocol
+    ) {
+        self.feedRepository = feedRepository
+    }
 }
 
-public let mediaReducer = Reducer<MediaState, MediaAction, MediaEnvironment> { state, action, _ in
-    switch action {
-    case let .searchTextDidChange(to: searchText):
-        guard searchText?.isEmpty == false else {
-            state.searchedFeedContents = nil
+public let mediaReducer = Reducer<MediaState, MediaAction, MediaEnvironment>.combine(
+    mediaListReducer.pullback(
+        state: /MediaState.initialized,
+        action: /MediaAction.mediaList,
+        environment: {
+            .init(
+                feedRepository: $0.feedRepository
+            )
+        }
+    ),
+    .init { state, action, environment in
+        switch action {
+        case .refresh:
+            return environment.feedRepository.feedContents()
+                .catchToEffect()
+                .map(MediaAction.refreshResponse)
+        case let .refreshResponse(.success(feedContents)):
+            var blogs: [FeedContent] = []
+            var videos: [FeedContent] = []
+            var podcasts: [FeedContent] = []
+            for feedContent in feedContents {
+                switch feedContent.item.wrappedValue {
+                case is Blog:
+                    blogs.append(feedContent)
+                case is Video:
+                    videos.append(feedContent)
+                case is Podcast:
+                    podcasts.append(feedContent)
+                default:
+                    assertionFailure("Unexpected FeedItem: (\(feedContent.item.wrappedValue)")
+                    break
+                }
+            }
+            if var listState = (/MediaState.initialized).extract(from: state) {
+                listState.blogs = blogs
+                listState.videos = videos
+                listState.podcasts = podcasts
+                state = .initialized(listState)
+            } else {
+                state = .initialized(
+                    .init(
+                        feedContents: feedContents,
+                        blogs: blogs,
+                        videos: videos,
+                        podcasts: podcasts
+                    )
+                )
+            }
+            return .none
+        case let .refreshResponse(.failure(error)):
+            print(error.localizedDescription)
+            // TODO: Error handling
+            return .none
+        case .mediaList:
+            return .none
+        case .showSetting:
             return .none
         }
-        if let searchText = searchText {
-            state.searchedFeedContents = state.feedContents.filter { content in
-                content.item.title.jaTitle.filterForSeaching.contains(searchText.filterForSeaching)
-                    || content.item.title.enTitle.filterForSeaching.contains(searchText.filterForSeaching)
-            }
-        } else {
-            state.searchedFeedContents = []
-        }
-        return .none
-    case let .isEditingDidChange(isEditing):
-        state.isSearchTextEditing = isEditing
-        return .none
-    case let .showMore(mediaType):
-        state.moreActiveType = mediaType
-        return .none
-    case .moreDismissed:
-        state.moreActiveType = nil
-        return .none
-    case .tap:
-        return .none
-    case .tapFavorite(let isFavorited, let id):
-        return .none
-    case .showSetting:
-        return .none
     }
-}
-
-private extension String {
-    var filterForSeaching: Self {
-        self.replacingOccurrences(of: " ", with: "")
-            .trimmingCharacters(in: .whitespaces)
-            .lowercased()
-    }
-}
+)

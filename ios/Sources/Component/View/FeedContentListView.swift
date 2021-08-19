@@ -38,6 +38,7 @@ public struct FeedContentListView: View {
             }
         }
         .padding(.horizontal, SmallCard.Const.margin)
+        .animation(.easeInOut)
     }
 }
 

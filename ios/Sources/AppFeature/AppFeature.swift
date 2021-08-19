@@ -3,48 +3,90 @@ import ComposableArchitecture
 import FavoritesFeature
 import HomeFeature
 import MediaFeature
-import Model
 import Repository
 
-public enum AppState: Equatable {
-    case needToInitialize
-    case initialized(AppTabState)
-    case errorOccurred
+public struct AppState: Equatable {
+    public var homeState: HomeState
+    public var mediaState: MediaState
+    public var favoritesState: FavoritesState
+    public var aboutState: AboutState
+    public var isSettingPresented: Bool
 
-    public init() {
-        self = .needToInitialize
+    public init(
+        homeState: HomeState = .init(),
+        mediaState: MediaState = .init(),
+        favoritesState: FavoritesState = .init(),
+        aboutState: AboutState = .init(),
+        isSettingPresented: Bool = false
+    ) {
+        self.homeState = homeState
+        self.mediaState = mediaState
+        self.favoritesState = favoritesState
+        self.aboutState = aboutState
+        self.isSettingPresented = isSettingPresented
     }
 }
 
 public enum AppAction {
-    case refresh
-    case needRefresh
-    case refreshResponse(Result<[FeedContent], KotlinError>)
-    case appTab(AppTabAction)
+    case home(HomeAction)
+    case media(MediaAction)
+    case favorites(FavoritesAction)
+    case about(AboutAction)
+    case hideSetting
 }
 
 public let appReducer = Reducer<AppState, AppAction, AppEnvironment>.combine(
-    appTabReducer.pullback(
-        state: /AppState.initialized,
-        action: /AppAction.appTab,
-        environment: { $0 }
+    homeReducer.pullback(
+        state: \.homeState,
+        action: /AppAction.home,
+        environment: { environment -> HomeEnvironment in
+            .init(
+                feedRepository: environment.feedRepository
+            )
+        }
     ),
-    .init { state, action, environment in
+    mediaReducer.pullback(
+        state: \.mediaState,
+        action: /AppAction.media,
+        environment: { environment in
+            .init(
+                feedRepository: environment.feedRepository
+            )
+        }
+    ),
+    favoritesReducer.pullback(
+        state: \.favoritesState,
+        action: /AppAction.favorites,
+        environment: { environment -> FavoritesEnvironment in
+            .init(
+                feedRepository: environment.feedRepository
+            )
+        }
+    ),
+    aboutReducer.pullback(
+        state: \.aboutState,
+        action: /AppAction.about,
+        environment: { _ -> AboutEnvironment in
+            .init()
+        }
+    ),
+    .init { state, action, _ in
         switch action {
-        case .refresh:
-            return environment.feedRepository.feedContents()
-                .catchToEffect()
-                .map(AppAction.refreshResponse)
-        case .needRefresh:
-            state = .needToInitialize
+        case .home(.showSetting),
+             .media(.showSetting),
+             .favorites(.showSetting):
+            state.isSettingPresented = true
             return .none
-        case let .refreshResponse(.success(feedContents)):
-            state = .initialized(.init(feedContents: feedContents))
+        case .home:
             return .none
-        case let .refreshResponse(.failure(error)):
-            state = .errorOccurred
+        case .media:
             return .none
-        case .appTab:
+        case .favorites:
+            return .none
+        case .about:
+            return .none
+        case .hideSetting:
+            state.isSettingPresented = false
             return .none
         }
     }

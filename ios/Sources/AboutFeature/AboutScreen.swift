@@ -29,111 +29,67 @@ public struct AboutScreen: View {
         GeometryReader { geometry in
             NavigationView {
                 WithViewStore(store) { viewStore in
-                    ZStack {
-                        VStack {
-                            ScrollView(.vertical) {
-                                switch viewStore.selectedType {
-                                case .staff:
-                                    LazyVStack(alignment: .leading, spacing: 24) {
-                                        ForEach(viewStore.staffs) { staff in
-                                            StaffCell(staff: staff) { staff in
-                                                viewStore.send(.tapStaff(staff))
-                                            }
+                    VStack {
+                        ScrollView(.vertical) {
+                            switch viewStore.selectedType {
+                            case .staff:
+                                LazyVStack(alignment: .leading, spacing: 24) {
+                                    ForEach(viewStore.staffs) { staff in
+                                        StaffCell(staff: staff) { staff in
+                                            viewStore.send(.tapStaff(staff))
                                         }
                                     }
-                                    .padding(.top, 20)
-                                case .contributor:
-                                    LazyVGrid(
-                                        columns: Array(repeating: .init(), count: 3),
-                                        spacing: 40
-                                    ) {
-                                        ForEach(viewStore.contributors) { contributor in
-                                            ContributorCell(contributor: contributor) { contributor in
-                                                viewStore.send(.tapContributor(contributor))
-                                            }
-                                        }
-                                    }
-                                    .listStyle(PlainListStyle())
-                                    .padding(.top, 20)
                                 }
-                            }
-                            .toolbar {
-                                ToolbarItem(placement: .principal) {
-                                    Picker(
-                                        "",
-                                        selection:
-                                            viewStore.binding(
-                                                get: { $0.selectedType },
-                                                send: { .selectedPicker($0) }
-                                            )
-                                    ) {
-                                        ForEach(SelectedType.allCases, id: \.self) { (type) in
-                                            Text(type.title).tag(type)
+                                .padding(.top, 20)
+                            case .contributor:
+                                LazyVGrid(
+                                    columns: Array(repeating: .init(), count: 3),
+                                    spacing: 40
+                                ) {
+                                    ForEach(viewStore.contributors) { contributor in
+                                        ContributorCell(contributor: contributor) { contributor in
+                                            viewStore.send(.tapContributor(contributor))
                                         }
                                     }
-                                    .frame(width: geometry.size.width - 32, height: nil, alignment: .center)
-                                    .pickerStyle(SegmentedPickerStyle())
                                 }
-                            }
-                            .background(AssetColor.Background.primary.color.ignoresSafeArea())
-                            .navigationBarTitleDisplayMode(.inline)
-                            .onAppear {
-                                viewStore.send(.refresh)
+                                .listStyle(PlainListStyle())
+                                .padding(.top, 20)
                             }
                         }
-                        banner {
-                            viewStore.send(.tapBanner)
+                        .toolbar {
+                            ToolbarItem(placement: .principal) {
+                                Picker(
+                                    "",
+                                    selection:
+                                        viewStore.binding(
+                                            get: { $0.selectedType },
+                                            send: { .selectedPicker($0) }
+                                        )
+                                ) {
+                                    ForEach(SelectedType.allCases, id: \.self) { (type) in
+                                        Text(type.title).tag(type)
+                                    }
+                                }
+                                .frame(width: geometry.size.width - 32, height: nil, alignment: .center)
+                                .pickerStyle(SegmentedPickerStyle())
+                            }
+                        }
+                        .background(AssetColor.Background.primary.color)
+                        .navigationBarTitleDisplayMode(.inline)
+                        .onAppear {
+                            viewStore.send(.refresh)
                         }
                     }
                     .sheet(
                         isPresented: viewStore.binding(
                             get: \.isShowingWebView,
                             send: AboutAction.hideWebView
-                        ),
-                        content: {
+                        ), content: {
                             WebView(url: viewStore.showingURL!)
-                        }
-                    )
-                    .fullScreenCover(
-                        isPresented: viewStore.binding(
-                            get: \.isShowingAboutDroidKaigi,
-                            send: AboutAction.hideAboutDroidKaigi
-                        ),
-                        content: {
-                            AboutDroidKaigiScreen()
                         }
                     )
                 }
             }
-        }
-    }
-}
-
-private extension AboutScreen {
-    func banner(tap: @escaping () -> Void) -> some View {
-        VStack {
-            Spacer()
-
-            HStack(spacing: 8) {
-                Text(L10n.AboutDroidKaigiScreen.whatIs)
-                    .foregroundColor(.white)
-                    .font(.headline)
-
-                AssetImage.logoTitle.image
-                    .colorScheme(.dark)
-                    .frame(height: 22)
-
-                Spacer()
-
-                AssetImage.iconChevron.image
-                    .renderingMode(.template)
-                    .foregroundColor(.white)
-            }
-            .padding(16)
-            .background(AssetColor.primary.color)
-            .cornerRadius(6)
-            .onTapGesture(perform: tap)
-            .padding(16)
         }
     }
 }

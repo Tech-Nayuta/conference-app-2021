@@ -7,9 +7,20 @@ import SwiftUI
 
 public struct HomeScreen: View {
     private let store: Store<HomeState, HomeAction>
+    @ObservedObject private var viewStore: ViewStore<ViewState, ViewAction>
 
     public init(store: Store<HomeState, HomeAction>) {
         self.store = store
+        self.viewStore = ViewStore<ViewState, ViewAction>(store.scope(state: ViewState.init(state:), action: HomeAction.init(action:)))
+    }
+
+    internal struct ViewState: Equatable {
+        init(state: HomeState) {}
+    }
+
+    internal enum ViewAction {
+        case progressViewAppeared
+        case showSetting
     }
 
     public var body: some View {
@@ -19,123 +30,99 @@ public struct HomeScreen: View {
                     AssetColor.primary.color
                         .frame(width: nil, height: 200)
                         .clipShape(CutCornerRectangle(targetCorners: [.topLeft], radius: 42))
-                    WithViewStore(store) { viewStore in
-                        VStack(alignment: .trailing, spacing: 0) {
-                            Spacer(minLength: 16)
-                            MessageBar(title: viewStore.message)
-                                .padding(.trailing, 16)
-                            if let topic = viewStore.topic {
-                                LargeCard(
-                                    content: topic,
-                                    tapAction: {
-                                        viewStore.send(.tap(topic))
-                                    },
-                                    tapFavoriteAction: {
-                                        viewStore.send(.tapFavorite(isFavorited: topic.isFavorited, id: topic.id))
-                                    }
-                                )
-                            }
-                            Separator()
-                            QuestionnaireView(tapAnswerAction: {
-                                viewStore.send(.answerQuestionnaire)
-                            })
-                            Separator()
-                            ForEach(viewStore.listFeedContents) { feedContent in
-                                ListItem(
-                                    content: feedContent,
-                                    tapAction: {
-                                        viewStore.send(.tap(feedContent))
-                                    },
-                                    tapFavoriteAction: {
-                                        viewStore.send(.tapFavorite(isFavorited: feedContent.isFavorited, id: feedContent.id))
-                                    }
-                                )
-                            }
+                    SwitchStore(store) {
+                        CaseLet(
+                            state: /HomeState.needToInitialize,
+                            action: { (action: ViewAction) in
+                                HomeAction.init(action: action)
+                            }) { _ in
+                            ProgressView()
+                                .onAppear { viewStore.send(.progressViewAppeared) }
                         }
-                        .separatorStyle(ThickSeparatorStyle())
+                        CaseLet(
+                            state: /HomeState.initialized,
+                            action: HomeAction.init(action:),
+                            then: HomeListView.init(store:))
                     }
                 }
-            }
-            .background(AssetColor.Background.primary.color.ignoresSafeArea())
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    AssetImage.logoTitle.image
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .principal) {
+                        AssetImage.logoTitle.image
+                    }
+                }
+                .navigationBarItems(
+                    trailing: Button(action: {
+                        viewStore.send(.showSetting)
+                    }, label: {
+                        AssetImage.iconSetting.image
+                            .renderingMode(.template)
+                            .foregroundColor(AssetColor.Base.primary.color)
+                    })
+                )
+                .introspectViewController { viewController in
+                    viewController.view.backgroundColor = AssetColor.Background.primary.uiColor
                 }
             }
-            .navigationBarItems(
-                trailing: Button(action: {
-                    ViewStore(store).send(.showSetting)
-                }, label: {
-                    AssetImage.iconSetting.image
-                        .renderingMode(.template)
-                        .foregroundColor(AssetColor.Base.primary.color)
-                })
-            )
         }
     }
 }
 
-private extension LargeCard {
-    init(
-        content: FeedContent,
-        tapAction: @escaping () -> Void,
-        tapFavoriteAction: @escaping () -> Void
-    ) {
-        self.init(
-            title: content.item.title.jaTitle,
-            imageURL: URL(string: content.item.image.largeURLString),
-            media: content.item.media,
-            date: content.item.publishedAt,
-            isFavorited: content.isFavorited,
-            tapAction: tapAction,
-            tapFavoriteAction: tapFavoriteAction
-        )
+private extension HomeAction {
+    init(action: HomeScreen.ViewAction) {
+        switch action {
+        case .progressViewAppeared:
+            self = .refresh
+        case .showSetting:
+            self = .showSetting
+        }
     }
-}
 
-private extension ListItem {
-    init(
-        content: FeedContent,
-        tapAction: @escaping () -> Void,
-        tapFavoriteAction: @escaping () -> Void
-    ) {
-        let speakers = (content.item.wrappedValue as? Podcast)?.speakers ?? []
-        self.init(
-            title: content.item.title.jaTitle,
-            media: content.item.media,
-            imageURL: URL(string: content.item.image.smallURLString),
-            speakers: speakers,
-            date: content.item.publishedAt,
-            isFavorited: content.isFavorited,
-            tapFavoriteAction: tapFavoriteAction,
-            tapAction: tapAction
-        )
+    init(action: HomeListAction) {
+        self = .homeList(action)
     }
 }
 
 #if DEBUG
 public struct HomeScreen_Previews: PreviewProvider {
     public static var previews: some View {
-        ForEach(ColorScheme.allCases, id: \.self) { colorScheme in
+        Group {
             HomeScreen(
                 store: .init(
-                    initialState: .init(
-                        feedContents: [
-                            .blogMock(),
-                            .blogMock(),
-                            .blogMock(),
-                            .blogMock(),
-                            .blogMock(),
-                            .blogMock()
-                        ]
-                    ),
+                    initialState: .needToInitialize,
                     reducer: .empty,
                     environment: {}
                 )
             )
             .previewDevice(.init(rawValue: "iPhone 12"))
-            .environment(\.colorScheme, colorScheme)
+            .environment(\.colorScheme, .dark)
+            HomeScreen(
+                store: .init(
+                    initialState: .needToInitialize,
+                    reducer: .empty,
+                    environment: {}
+                )
+            )
+            .previewDevice(.init(rawValue: "iPhone 12"))
+            .environment(\.colorScheme, .light)
+            HomeScreen(
+                store: .init(
+                    initialState: .initialized(.init(feedContents: [.videoMock(), .videoMock()])),
+                    reducer: .empty,
+                    environment: {}
+                )
+            )
+            .previewDevice(.init(rawValue: "iPhone 12"))
+            .environment(\.colorScheme, .dark)
+            HomeScreen(
+                store: .init(
+                    initialState: .initialized(.init(feedContents: [.videoMock(), .videoMock()])),
+                    reducer: .empty,
+                    environment: {}
+                )
+            )
+            .previewDevice(.init(rawValue: "iPhone 12"))
+            .environment(\.colorScheme, .light)
         }
     }
 }

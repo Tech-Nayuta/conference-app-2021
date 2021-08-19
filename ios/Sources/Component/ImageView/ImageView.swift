@@ -66,6 +66,7 @@ public struct ImageView: View {
                     .resizingMode(.aspectFill)
                     .frame(width: width, height: height)
                     .clipped()
+                    .allowsHitTesting(false)
             } else if state.error != nil {
                 placeholderView
             } else {

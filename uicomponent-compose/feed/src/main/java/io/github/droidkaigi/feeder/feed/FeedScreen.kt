@@ -451,10 +451,7 @@ fun FilterItemCountRow(count: String) {
 @Composable
 fun PreviewFeedScreen() {
     AppThemeWithBackground {
-        CompositionLocalProvider(
-            feedViewModelProviderValue(fakeFeedViewModel()),
-            fmPlayerViewModelProviderValue(fakeFmPlayerViewModel())
-        ) {
+        CompositionLocalProvider(feedViewModelProviderValue(fakeFeedViewModel())) {
             FeedScreen(
                 selectedTab = FeedTab.Home,
                 onSelectedTab = {},
@@ -472,10 +469,7 @@ fun PreviewDarkFeedScreen() {
     AppThemeWithBackground(
         theme = Theme.DARK
     ) {
-        CompositionLocalProvider(
-            feedViewModelProviderValue(fakeFeedViewModel()),
-            fmPlayerViewModelProviderValue(fakeFmPlayerViewModel())
-        ) {
+        CompositionLocalProvider(feedViewModelProviderValue(fakeFeedViewModel())) {
             FeedScreen(
                 selectedTab = FeedTab.Home,
                 onSelectedTab = {},
@@ -491,10 +485,7 @@ fun PreviewDarkFeedScreen() {
 @Composable
 fun PreviewFeedScreenWithStartBlog() {
     AppThemeWithBackground {
-        CompositionLocalProvider(
-            feedViewModelProviderValue(fakeFeedViewModel()),
-            fmPlayerViewModelProviderValue(fakeFmPlayerViewModel())
-        ) {
+        CompositionLocalProvider(feedViewModelProviderValue(fakeFeedViewModel())) {
             FeedScreen(
                 selectedTab = FeedTab.FilteredFeed.Blog,
                 onSelectedTab = {},

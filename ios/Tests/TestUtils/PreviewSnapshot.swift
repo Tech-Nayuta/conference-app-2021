@@ -2,10 +2,6 @@ import SnapshotTesting
 import SwiftUI
 import XCTest
 
-internal let traitCollectionForSnapshot: UITraitCollection = .init(traitsFrom: [
-    .init(displayScale: 0.5),
-])
-
 /// Initialize SnapshotTesting with Environment Variable
 public func initSnapshotTesting() {
     isRecording = ProcessInfo.processInfo.environment["recording"] == "true"
@@ -29,7 +25,7 @@ public func assertPreviewSnapshot<T: PreviewProvider>(
     for preview in T._allPreviews {
         assertSnapshot(
             matching: preview.content,
-            as: .image(precision: 0.9, traits: traitCollectionForSnapshot),
+            as: .image(precision: 0.9),
             record: recording,
             file: file,
             testName: testName,
@@ -62,7 +58,7 @@ public func assertPreviewScreenSnapshot<T: PreviewProvider>(
             deviceCounter[device, default: 0] += 1
             assertSnapshot(
                 matching: vc,
-                as: .image(on: device.config, precision: 0.9, traits: traitCollectionForSnapshot),
+                as: .image(on: device.config, precision: 0.9),
                 named: "\(device).\(deviceCounter[device, default: 0])",
                 record: recording,
                 file: file,
