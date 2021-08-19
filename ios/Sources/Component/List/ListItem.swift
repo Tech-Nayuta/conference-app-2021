@@ -4,13 +4,14 @@ import SwiftUI
 
 public struct ListItem: View {
     private struct Const {
-        static let maximumShowingSpeaker = 7
+        static let maximumShowingUser = 7
     }
 
     private let title: String
     private let media: Media
     private let imageURL: URL?
-    private let speakers: [Speaker]
+    // TODO: Replace with real value
+    private let users: [URL]
     private let date: Date
     private let isFavorited: Bool
     private let tapFavoriteAction: () -> Void
@@ -20,7 +21,7 @@ public struct ListItem: View {
         title: String,
         media: Media,
         imageURL: URL?,
-        speakers: [Speaker],
+        users: [URL],
         date: Date,
         isFavorited: Bool,
         tapFavoriteAction: @escaping () -> Void,
@@ -29,7 +30,7 @@ public struct ListItem: View {
         self.title = title
         self.media = media
         self.imageURL = imageURL
-        self.speakers = speakers
+        self.users = users
         self.date = date
         self.isFavorited = isFavorited
         self.tapFavoriteAction = tapFavoriteAction
@@ -44,29 +45,28 @@ public struct ListItem: View {
                 VStack(spacing: 8) {
                     ImageView(
                         imageURL: imageURL,
-                        placeholderSize: .small,
-                        width: 100,
-                        height: 100
+                        placeholderSize: .small
                     )
+                    .frame(width: 100, height: 100)
                 }
                 VStack(alignment: .leading) {
                     Text(title)
                         .font(.headline)
                         .foregroundColor(AssetColor.Base.primary.color)
-                        .lineLimit(speakers.isEmpty ? 3 : 2)
+                        .lineLimit(users.isEmpty ? 3 : 2)
                     Spacer(minLength: 8)
-                    if !speakers.isEmpty {
+                    if !users.isEmpty {
                         HStack(spacing: -4) {
-                            ForEach(Array(speakers.enumerated()), id: \.0) { (index, speaker) in
-                                if index > Const.maximumShowingSpeaker {
+                            ForEach(Array(users.enumerated()), id: \.0) { (index, _) in
+                                if index > Const.maximumShowingUser {
                                     EmptyView()
                                 } else {
-                                    AvatarView(avatarImageURL: URL(string: speaker.iconURLString), style: .small)
-                                        .zIndex(Double(Const.maximumShowingSpeaker - index))
+                                    AvatarView(avatarImageURL: nil, style: .small)
+                                        .zIndex(Double(Const.maximumShowingUser - index))
                                 }
                             }
-                            if speakers.count > Const.maximumShowingSpeaker {
-                                Text("+\(speakers.count - Const.maximumShowingSpeaker)")
+                            if users.count > Const.maximumShowingUser {
+                                Text("+\(users.count - Const.maximumShowingUser)")
                                     .font(.caption)
                                     .padding(4)
                                     .background(AssetColor.Background.contents.color)
@@ -75,7 +75,7 @@ public struct ListItem: View {
                                         Circle()
                                             .stroke(AssetColor.Separate.image.color, lineWidth: 1)
                                     )
-                                    .zIndex(Double(-Const.maximumShowingSpeaker))
+                                    .zIndex(Double(-Const.maximumShowingUser))
                             }
                         }
                         .frame(width: nil, height: 24)
@@ -100,7 +100,6 @@ public struct ListItem: View {
     }
 }
 
-#if DEBUG
 public struct ListItem_Previews: PreviewProvider {
     public static var previews: some View {
         Group {
@@ -108,7 +107,7 @@ public struct ListItem_Previews: PreviewProvider {
                 title: "タイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイ...",
                 media: .droidKaigiFm,
                 imageURL: nil,
-                speakers: [],
+                users: [],
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: true,
                 tapFavoriteAction: {},
@@ -121,7 +120,7 @@ public struct ListItem_Previews: PreviewProvider {
                 title: "タイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイ...",
                 media: .droidKaigiFm,
                 imageURL: nil,
-                speakers: [],
+                users: [],
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: true,
                 tapFavoriteAction: {},
@@ -133,7 +132,7 @@ public struct ListItem_Previews: PreviewProvider {
                 title: "タイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイ...",
                 media: .droidKaigiFm,
                 imageURL: nil,
-                speakers: Array(repeating: .mock(), count: 8),
+                users: Array(repeating: URL(string: "https://example.com")!, count: 8),
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: true,
                 tapFavoriteAction: {},
@@ -146,7 +145,7 @@ public struct ListItem_Previews: PreviewProvider {
                 title: "タイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイトルタイ...",
                 media: .droidKaigiFm,
                 imageURL: nil,
-                speakers: Array(repeating: .mock(), count: 8),
+                users: Array(repeating: URL(string: "https://example.com")!, count: 8),
                 date: Date(timeIntervalSince1970: 0),
                 isFavorited: true,
                 tapFavoriteAction: {},
@@ -158,4 +157,3 @@ public struct ListItem_Previews: PreviewProvider {
         .previewLayout(.sizeThatFits)
     }
 }
-#endif

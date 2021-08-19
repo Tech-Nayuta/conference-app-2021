@@ -1,4 +1,3 @@
-import Nuke
 import NukeUI
 import SwiftUI
 import Styleguide
@@ -38,38 +37,27 @@ public struct ImageView: View {
     private let imageURL: URL?
     private let placeholder: PlaceHolder
     private let placeholderSize: PlaceHolder.Size
-    private let width: CGFloat?
-    private let height: CGFloat?
 
     public init(
         imageURL: URL?,
         placeholder: PlaceHolder = .noImage,
-        placeholderSize: PlaceHolder.Size,
-        width: CGFloat? = nil,
-        height: CGFloat? = nil
+        placeholderSize: PlaceHolder.Size
     ) {
         self.imageURL = imageURL
         self.placeholder = placeholder
         self.placeholderSize = placeholderSize
-        self.width = width
-        self.height = height
     }
 
     public var body: some View {
         LazyImage(source: imageURL) { state in
             if let image = state.image {
                 image
-                    .resizingMode(.aspectFit)
-                    .frame(width: width, height: height)
-                    .clipped()
-                    .allowsHitTesting(false)
             } else if state.error != nil {
                 placeholderView
             } else {
                 placeholderView
             }
         }
-        .frame(width: width, height: height)
         .overlay(
             RoundedRectangle(cornerRadius: 2)
                 .stroke(AssetColor.Separate.image.color, lineWidth: 1)

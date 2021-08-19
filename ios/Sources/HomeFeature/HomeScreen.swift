@@ -1,25 +1,14 @@
 import Component
 import ComposableArchitecture
 import Model
-import Repository
 import Styleguide
 import SwiftUI
 
 public struct HomeScreen: View {
     private let store: Store<HomeState, HomeAction>
-    @ObservedObject private var viewStore: ViewStore<ViewState, ViewAction>
 
     public init(store: Store<HomeState, HomeAction>) {
         self.store = store
-        self.viewStore = ViewStore<ViewState, ViewAction>(store.scope(state: ViewState.init(state:), action: HomeAction.init(action:)))
-    }
-
-    internal struct ViewState: Equatable {
-        init(state: HomeState) {}
-    }
-
-    internal enum ViewAction {
-        case progressViewAppeared
     }
 
     public var body: some View {
@@ -29,17 +18,32 @@ public struct HomeScreen: View {
                     AssetColor.primary.color
                         .frame(width: nil, height: 200)
                         .clipShape(CutCornerRectangle(targetCorners: [.topLeft], radius: 42))
-                    SwitchStore(store) {
-                        CaseLet(
-                            state: /HomeState.needToInitialize,
-                            action: HomeAction.init(action:)) { _ in
-                            ProgressView()
-                                .onAppear { viewStore.send(.progressViewAppeared) }
+                    WithViewStore(store) { viewStore in
+                        VStack(alignment: .trailing, spacing: 0) {
+                            MessageBar(title: viewStore.message)
+                                .padding(.top, 16)
+                                .padding(.trailing, 16)
+                            if let topic = viewStore.topic {
+                                LargeCard(
+                                    item: topic,
+                                    tapAction: {},
+                                    tapFavoriteAction: {}
+                                )
+                            }
+                            Separator()
+                            QuestionnaireView(tapAnswerAction: {
+                                viewStore.send(.answerQuestionnaire)
+                            })
+                            Separator()
+                            ForEach(viewStore.listFeedItems) { feedItem in
+                                ListItem(
+                                    item: feedItem,
+                                    tapAction: {},
+                                    tapFavoriteAction: {}
+                                )
+                            }
                         }
-                        CaseLet(
-                            state: /HomeState.initialized,
-                            action: HomeAction.init(action:),
-                            then: HomeListView.init(store:))
+                        .separatorStyle(ThickSeparatorStyle())
                     }
                 }
             }
@@ -61,55 +65,29 @@ public struct HomeScreen: View {
     }
 }
 
-private extension HomeAction {
-    init(action: HomeScreen.ViewAction) {
-        switch action {
-        case .progressViewAppeared:
-            self = .refresh
-        }
-    }
-
-    init(action: HomeListAction) {
-        self = .homeList(action)
-    }
-}
-
-#if DEBUG
 public struct HomeScreen_Previews: PreviewProvider {
     public static var previews: some View {
         Group {
             HomeScreen(
                 store: .init(
-                    initialState: .needToInitialize,
-                    reducer: .empty,
-                    environment: HomeEnvironment(feedRepository: FeedRepositoryMock())
+                    initialState: .init(
+                        feedItems: [.mock(), .mock()],
+                        message: "DroidKaigi 2021 (7/31) D-7"
+                    ),
+                    reducer: homeReducer,
+                    environment: .init()
                 )
             )
             .previewDevice(.init(rawValue: "iPhone 12"))
             .environment(\.colorScheme, .dark)
             HomeScreen(
                 store: .init(
-                    initialState: .needToInitialize,
-                    reducer: .empty,
-                    environment: HomeEnvironment(feedRepository: FeedRepositoryMock())
-                )
-            )
-            .previewDevice(.init(rawValue: "iPhone 12"))
-            .environment(\.colorScheme, .light)
-            HomeScreen(
-                store: .init(
-                    initialState: .initialized(.init(feedContents: [.videoMock(), .videoMock()])),
-                    reducer: .empty,
-                    environment: HomeEnvironment(feedRepository: FeedRepositoryMock())
-                )
-            )
-            .previewDevice(.init(rawValue: "iPhone 12"))
-            .environment(\.colorScheme, .dark)
-            HomeScreen(
-                store: .init(
-                    initialState: .initialized(.init(feedContents: [.videoMock(), .videoMock()])),
-                    reducer: .empty,
-                    environment: HomeEnvironment(feedRepository: FeedRepositoryMock())
+                    initialState: .init(
+                        feedItems: [.mock(), .mock()],
+                        message: "DroidKaigi 2021 (7/31) D-7"
+                    ),
+                    reducer: homeReducer,
+                    environment: .init()
                 )
             )
             .previewDevice(.init(rawValue: "iPhone 12"))
@@ -117,4 +95,54 @@ public struct HomeScreen_Previews: PreviewProvider {
         }
     }
 }
-#endif
+
+extension HomeFeature.FeedItem {
+    static func mock(
+        id: String = UUID().uuidString,
+        imageURLString: String = "",
+        link: String = "",
+        media: Media = .medium,
+        publishedAt: Date = Date(timeIntervalSince1970: 0),
+        summary: String = "",
+        title: String = "DroidKaigi 2021とその他活動予定についてのお知らせ"
+    ) -> HomeFeature.FeedItem {
+        .init(id: id, imageURLString: imageURLString, link: link, media: media, publishedAt: publishedAt, summary: summary, title: title)
+    }
+}
+
+private extension LargeCard {
+    init(
+        item: FeedItem,
+        tapAction: @escaping () -> Void,
+        tapFavoriteAction: @escaping () -> Void
+    ) {
+        self.init(
+            title: item.title,
+            imageURL: URL(string: item.imageURLString),
+            media: item.media,
+            date: item.publishedAt,
+            isFavorited: false,
+            tapAction: tapAction,
+            tapFavoriteAction: tapFavoriteAction
+        )
+    }
+}
+
+private extension ListItem {
+    init(
+        item: FeedItem,
+        tapAction: @escaping () -> Void,
+        tapFavoriteAction: @escaping () -> Void
+    ) {
+        self.init(
+            title: item.title,
+            media: item.media,
+            imageURL: URL(string: item.imageURLString),
+            users: [],
+            date: item.publishedAt,
+            isFavorited: false,
+            tapFavoriteAction: tapFavoriteAction,
+            tapAction: tapAction
+        )
+    }
+}
