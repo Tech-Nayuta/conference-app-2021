@@ -15,37 +15,49 @@ struct MediaListView: View {
     }
 
     struct ViewState: Equatable {
-        var searchedFeedContents: [FeedContent]
         var hasBlogs: Bool
         var hasVideos: Bool
         var hasPodcasts: Bool
         var isSearchResultVisible: Bool
         var isSearchTextEditing: Bool
-        var moreActiveType: MediaType?
+        var isMoreActive: Bool
 
         init(state: MediaListState) {
-            searchedFeedContents = state.searchedFeedContents
             hasBlogs = !state.blogs.isEmpty
             hasVideos = !state.videos.isEmpty
             hasPodcasts = !state.podcasts.isEmpty
-            isSearchResultVisible = state.isSearchResultVisible
-            isSearchTextEditing = state.isSearchTextEditing
-            moreActiveType = state.moreActiveType
+            if case let .searchText(text) = state.next, !text.isEmpty {
+                isSearchResultVisible = true
+            } else {
+                isSearchResultVisible = false
+            }
+            switch state.next {
+            case .isEditingDidChange(let isEditing):
+                isSearchTextEditing = isEditing
+            case .searchText:
+                isSearchTextEditing = true
+            default:
+                isSearchTextEditing = false
+            }
+            if case .more = state.next {
+                isMoreActive = true
+            } else {
+                isMoreActive = false
+            }
         }
     }
 
     enum ViewAction {
         case moreDismissed
-        case tap(FeedContent)
-        case tapFavorite(isFavorited: Bool, id: String)
     }
 
     var body: some View {
         ZStack {
             ScrollView {
                 if viewStore.hasBlogs {
-                    MediaSectionView(
-                        type: .blog,
+                    MediaSection(
+                        icon: AssetImage.iconBlog.image.renderingMode(.template),
+                        title: L10n.MediaScreen.Section.Blog.title,
                         store: store.scope(
                             state: \.blogs,
                             action: { .init(action: $0, for: .blog) }
@@ -54,8 +66,9 @@ struct MediaListView: View {
                     separator
                 }
                 if viewStore.hasVideos {
-                    MediaSectionView(
-                        type: .video,
+                    MediaSection(
+                        icon: AssetImage.iconVideo.image.renderingMode(.template),
+                        title: L10n.MediaScreen.Section.Video.title,
                         store: store.scope(
                             state: \.videos,
                             action: { .init(action: $0, for: .video) }
@@ -64,8 +77,9 @@ struct MediaListView: View {
                     separator
                 }
                 if viewStore.hasPodcasts {
-                    MediaSectionView(
-                        type: .podcast,
+                    MediaSection(
+                        icon: AssetImage.iconPodcast.image.renderingMode(.template),
+                        title: L10n.MediaScreen.Section.Podcast.title,
                         store: store.scope(
                             state: \.podcasts,
                             action: { .init(action: $0, for: .podcast) }
@@ -81,14 +95,14 @@ struct MediaListView: View {
                 .animation(.easeInOut)
                 .zIndex(1)
 
+            // TODO: show filtered result of feed contents
+            // Also, make tap & favorite action works
             SearchResultScreen(
-                feedContents: viewStore.searchedFeedContents,
-                tap: { feedContent in
-                    viewStore.send(.tap(feedContent))
-                },
-                tapFavorite: { isFavorited, contentId in
-                    viewStore.send(.tapFavorite(isFavorited: isFavorited, id: contentId))
-                }
+                store: .init(
+                    initialState: .init(),
+                    reducer: .empty,
+                    environment: {}
+                )
             )
             .opacity(viewStore.isSearchResultVisible ? 1 : .zero)
             .zIndex(2)
@@ -118,29 +132,21 @@ struct MediaListView: View {
     }
 }
 
-private extension MediaListView.ViewState {
-    var isMoreActive: Bool {
-        moreActiveType != nil
-    }
-}
-
 private extension MediaListAction {
     init(action: MediaListView.ViewAction) {
         switch action {
         case .moreDismissed:
             self = .moreDismissed
-        case .tap(let feedContent):
-            self = .tap(feedContent)
-        case .tapFavorite(let isFavorited, let id):
-            self = .tapFavorite(isFavorited: isFavorited, id: id)
         }
     }
 }
 
 private extension MediaDetailScreen.ViewState {
     init?(state: MediaListState) {
-        guard let moreActiveType = state.moreActiveType else { return nil }
-        switch moreActiveType {
+        guard case let .more(mediaType) = state.next else {
+            return nil
+        }
+        switch mediaType {
         case .blog:
             title = L10n.MediaScreen.Section.Blog.title
             contents = state.blogs
@@ -155,7 +161,7 @@ private extension MediaDetailScreen.ViewState {
 }
 
 private extension MediaListAction {
-    init(action: MediaSectionView.ViewAction, for mediaType: MediaType) {
+    init(action: MediaSection.ViewAction, for mediaType: MediaType) {
         switch action {
         case .showMore:
             self = .showMore(for: mediaType)
@@ -183,10 +189,10 @@ public struct MediaListView_Previews: PreviewProvider {
             MediaListView(
                 store: .init(
                     initialState: .init(
-                        feedContents: [],
                         blogs: [.blogMock(), .blogMock()],
                         videos: [.videoMock(), .videoMock()],
-                        podcasts: [.podcastMock(), .podcastMock()]
+                        podcasts: [.podcastMock(), .podcastMock()],
+                        next: nil
                     ),
                     reducer: .empty,
                     environment: {}

@@ -37,6 +37,7 @@ public struct MediaDetailScreen: View {
                         viewStore.send(.tapFavorite(isFavorited: isFavorited, id: contentId))
                     }
                 )
+                .padding(.horizontal, 8)
             }
             .navigationBarTitle(viewStore.title, displayMode: .inline)
         }

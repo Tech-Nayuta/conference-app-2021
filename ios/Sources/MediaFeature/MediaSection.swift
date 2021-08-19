@@ -4,8 +4,10 @@ import Model
 import SwiftUI
 import Styleguide
 
-public struct MediaSectionView: View {
-    let type: MediaType
+public struct MediaSection: View {
+
+    var icon: SwiftUI.Image
+    var title: String
     let store: Store<[FeedContent], ViewAction>
 
     enum ViewAction {
@@ -15,17 +17,23 @@ public struct MediaSectionView: View {
     }
 
     public var body: some View {
-        VStack(spacing: .zero) {
+        VStack(spacing: 0) {
             WithViewStore(store) { viewStore in
                 MediaSectionHeader(
-                    type: type,
+                    icon: icon,
+                    title: title,
                     moreAction: { viewStore.send(.showMore) }
                 )
                 ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: .zero) {
+                    LazyHStack(spacing: 0) {
                         ForEach(viewStore.state) { content in
+                            let item = content.item
                             MediumCard(
-                                content: content,
+                                title: item.title.get(by: .ja),
+                                imageURL: URL(string: item.image.standardURLString),
+                                media: item.media,
+                                date: item.publishedAt,
+                                isFavorited: content.isFavorited,
                                 tapAction: {
                                     viewStore.send(.tap(content))
                                 },
@@ -33,34 +41,19 @@ public struct MediaSectionView: View {
                                     viewStore.send(.tapFavorite(isFavorited: content.isFavorited, id: content.id))
                                 }
                             )
+                            .aspectRatio(257.0 / 258, contentMode: .fit)
                         }
                     }
+                    .padding(.horizontal, 8)
                 }
             }
         }
-    }
-}
-
-private extension MediumCard {
-    init(
-        content: FeedContent,
-        tapAction: @escaping () -> Void,
-        tapFavoriteAction: @escaping () -> Void
-    ) {
-        self.init(
-            title: content.item.title.jaTitle,
-            imageURL: URL(string: content.item.image.largeURLString),
-            media: content.item.media,
-            date: content.item.publishedAt,
-            isFavorited: content.isFavorited,
-            tapAction: tapAction,
-            tapFavoriteAction: tapFavoriteAction
-        )
+        .aspectRatio(375.0 / 301, contentMode: .fit)
     }
 }
 
 #if DEBUG
-public struct MediaSectionView_Previews: PreviewProvider {
+public struct MediaSection_Previews: PreviewProvider {
     public static var previews: some View {
         let sizeCategories: [ContentSizeCategory] = [
             .large, // Default
@@ -68,8 +61,9 @@ public struct MediaSectionView_Previews: PreviewProvider {
         ]
         ForEach(ColorScheme.allCases, id: \.self) { colorScheme in
             ForEach(sizeCategories, id: \.self) { sizeCategory in
-                MediaSectionView(
-                    type: .blog,
+                MediaSection(
+                    icon: AssetImage.iconBlog.image.renderingMode(.template),
+                    title: L10n.MediaScreen.Section.Blog.title,
                     store: .init(
                         initialState: [
                             .blogMock(),

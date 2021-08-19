@@ -29,7 +29,7 @@ public struct HomeEnvironment {
 }
 
 public let homeReducer = Reducer<HomeState, HomeAction, HomeEnvironment>.combine(
-    homeListReducer.pullback(
+    HomeListReducer.pullback(
         state: /HomeState.initialized,
         action: /HomeAction.homeList,
         environment: {

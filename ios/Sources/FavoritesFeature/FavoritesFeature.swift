@@ -1,60 +1,32 @@
+import Model
 import Component
 import ComposableArchitecture
-import Model
-import Repository
 
-public enum FavoritesState: Equatable {
-    case needToInitialize
-    case emptyInitialized
-    case initialized(FavoritesListState)
+public struct FavoritesState: Equatable {
+    public var contents: [FeedContent]
 
-    public init() {
-        self = .needToInitialize
+    public init(contents: [FeedContent] = []) {
+        self.contents = contents
     }
 }
 
 public enum FavoritesAction {
     case refresh
-    case refreshResponse(Result<[FeedContent], KotlinError>)
-    case favoritesList(FavoritesListAction)
+    case tap(FeedContent)
+    case tapFavorite(isFavorited: Bool, id: String)
 }
 
 public struct FavoritesEnvironment {
-    public let feedRepository: FeedRepositoryProtocol
-
-    public init(
-        feedRepository: FeedRepositoryProtocol
-    ) {
-        self.feedRepository = feedRepository
-    }
+    public init() {}
 }
 
-public let favoritesReducer = Reducer<FavoritesState, FavoritesAction, FavoritesEnvironment>.combine(
-    favoritesListReducer.pullback(
-        state: /FavoritesState.initialized,
-        action: /FavoritesAction.favoritesList,
-        environment: {
-            .init(feedRepository: $0.feedRepository)
-        }
-    ),
-    .init { state, action, environment in
-        switch action {
-        case .refresh:
-            return environment.feedRepository.feedContents()
-                .catchToEffect()
-                .map(FavoritesAction.refreshResponse)
-        case let .refreshResponse(.success(feedContents)):
-            let filteredFeedContents = feedContents.filter(\.isFavorited)
-            state = filteredFeedContents.isEmpty
-                ? .emptyInitialized
-                : .initialized(.init(feedContents: filteredFeedContents))
-            return .none
-        case let .refreshResponse(.failure(error)):
-            print(error.localizedDescription)
-            // TODO: Error handling
-            return .none
-        case .favoritesList:
-            return .none
-        }
+public let favoritesReducer = Reducer<FavoritesState, FavoritesAction, FavoritesEnvironment> { _, action, _ in
+    switch action {
+    case .refresh:
+        return .none
+    case .tap(let content):
+        return .none
+    case .tapFavorite:
+        return .none
     }
-)
+}

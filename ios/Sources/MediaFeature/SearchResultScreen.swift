@@ -5,25 +5,43 @@ import Styleguide
 import SwiftUI
 
 public struct SearchResultScreen: View {
-    let feedContents: [FeedContent]
-    let tap: (FeedContent) -> Void
-    let tapFavorite: (_ isFavorited: Bool, _ id: String) -> Void
+    let store: Store<ViewState, ViewAction>
+
+    struct ViewState: Equatable {
+        var contents: [FeedContent]
+
+        init(contents: [FeedContent] = []) {
+            self.contents = contents
+        }
+    }
+
+    enum ViewAction {
+        case tap(FeedContent)
+        case tapFavorite(isFavorited: Bool, id: String)
+    }
 
     public var body: some View {
-        Group {
-            if feedContents.isEmpty {
-                empty
-            } else {
-                ScrollView {
-                    FeedContentListView(
-                        feedContents: feedContents,
-                        tapContent: tap,
-                        tapFavorite: tapFavorite
-                    )
+        WithViewStore(store) { viewStore in
+            Group {
+                if viewStore.contents.isEmpty {
+                    empty
+                } else {
+                    ScrollView {
+                        FeedContentListView(
+                            feedContents: viewStore.contents,
+                            tapContent: { content in
+                                viewStore.send(.tap(content))
+                            },
+                            tapFavorite: { isFavorited, contentId in
+                                viewStore.send(.tapFavorite(isFavorited: isFavorited, id: contentId))
+                            }
+                        )
+                        .padding(.horizontal, 8)
+                    }
                 }
             }
+            .background(AssetColor.Background.primary.color)
         }
-        .background(AssetColor.Background.primary.color)
     }
 }
 
@@ -44,30 +62,43 @@ extension SearchResultScreen {
 #if DEBUG
 public struct SearchResultScreen_Previews: PreviewProvider {
     public static var previews: some View {
-        ForEach(ColorScheme.allCases, id: \.self) { colorScheme in
-            SearchResultScreen(
-                feedContents: [],
-                tap: { _ in },
-                tapFavorite: { _, _ in }
+        SearchResultScreen(
+            store: .init(
+                initialState: .init(
+                    contents: [
+                        .blogMock(),
+                        .blogMock(),
+                        .blogMock(),
+                        .blogMock(),
+                        .blogMock(),
+                        .blogMock(),
+                    ]
+                ),
+                reducer: .empty,
+                environment: {}
             )
-            .previewDevice(.init(rawValue: "iPhone 12"))
-            .environment(\.colorScheme, colorScheme)
+        )
+        .previewDevice(.init(rawValue: "iPhone 12"))
+        .environment(\.colorScheme, .light)
 
-            SearchResultScreen(
-                feedContents: [
-                    .blogMock(),
-                    .blogMock(),
-                    .blogMock(),
-                    .blogMock(),
-                    .blogMock(),
-                    .blogMock()
-                ],
-                tap: { _ in },
-                tapFavorite: { _, _ in }
+        SearchResultScreen(
+            store: .init(
+                initialState: .init(
+                    contents: [
+                        .blogMock(),
+                        .blogMock(),
+                        .blogMock(),
+                        .blogMock(),
+                        .blogMock(),
+                        .blogMock(),
+                    ]
+                ),
+                reducer: .empty,
+                environment: {}
             )
-            .previewDevice(.init(rawValue: "iPhone 12"))
-            .environment(\.colorScheme, colorScheme)
-        }
+        )
+        .previewDevice(.init(rawValue: "iPhone 12"))
+        .environment(\.colorScheme, .dark)
     }
 }
 #endif
