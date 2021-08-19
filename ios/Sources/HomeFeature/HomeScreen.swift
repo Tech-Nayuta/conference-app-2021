@@ -82,7 +82,7 @@ public struct HomeScreen_Previews: PreviewProvider {
                 store: .init(
                     initialState: .needToInitialize,
                     reducer: .empty,
-                    environment: {}
+                    environment: HomeEnvironment(feedRepository: FeedRepositoryMock())
                 )
             )
             .previewDevice(.init(rawValue: "iPhone 12"))
@@ -91,7 +91,7 @@ public struct HomeScreen_Previews: PreviewProvider {
                 store: .init(
                     initialState: .needToInitialize,
                     reducer: .empty,
-                    environment: {}
+                    environment: HomeEnvironment(feedRepository: FeedRepositoryMock())
                 )
             )
             .previewDevice(.init(rawValue: "iPhone 12"))
@@ -100,7 +100,7 @@ public struct HomeScreen_Previews: PreviewProvider {
                 store: .init(
                     initialState: .initialized(.init(feedContents: [.videoMock(), .videoMock()])),
                     reducer: .empty,
-                    environment: {}
+                    environment: HomeEnvironment(feedRepository: FeedRepositoryMock())
                 )
             )
             .previewDevice(.init(rawValue: "iPhone 12"))
@@ -109,7 +109,7 @@ public struct HomeScreen_Previews: PreviewProvider {
                 store: .init(
                     initialState: .initialized(.init(feedContents: [.videoMock(), .videoMock()])),
                     reducer: .empty,
-                    environment: {}
+                    environment: HomeEnvironment(feedRepository: FeedRepositoryMock())
                 )
             )
             .previewDevice(.init(rawValue: "iPhone 12"))

@@ -1,5 +1,4 @@
 import Component
-import Model
 import Styleguide
 import SwiftUI
 
@@ -9,17 +8,15 @@ public struct StaffCell: View {
     }
 
     private let staff: Staff
-    private let tapAction: (Staff) -> Void
 
-    public init(staff: Staff, tapAction: @escaping (Staff) -> Void) {
+    public init(staff: Staff) {
         self.staff = staff
-        self.tapAction = tapAction
     }
 
     public var body: some View {
         HStack {
             ImageView(
-                imageURL: URL(string: staff.imageURLString),
+                imageURL: staff.iconUrl,
                 placeholderSize: .medium,
                 width: Const.imageSize,
                 height: Const.imageSize
@@ -33,36 +30,36 @@ public struct StaffCell: View {
                 Text(staff.name)
                     .font(.body)
                     .foregroundColor(AssetColor.Base.secondary.color)
-                // TODO: specify value
-                Text("")
+                Text(staff.detail)
                     .font(.footnote)
                     .foregroundColor(AssetColor.Base.secondary.color)
             }
         }
         .padding(.leading, 20)
-        .onTapGesture {
-            tapAction(staff)
-        }
     }
 }
 
-#if DEBUG
 public struct StaffCell_Previews: PreviewProvider {
     public static var previews: some View {
         StaffCell(
-            staff: .mock(),
-            tapAction: { _ in }
+            staff: Staff(
+                name: "dummy name",
+                detail: "dummy detail",
+                iconUrl: URL(string: "https://example.com")!
+            )
         )
         .frame(width: 375, height: 84)
         .environment(\.colorScheme, .light)
         .previewLayout(.sizeThatFits)
         StaffCell(
-            staff: .mock(),
-            tapAction: { _ in }
+            staff: Staff(
+                name: "dummy name",
+                detail: "dummy detail",
+                iconUrl: URL(string: "https://example.com")!
+            )
         )
         .frame(width: 375, height: 84)
         .environment(\.colorScheme, .dark)
         .previewLayout(.sizeThatFits)
     }
 }
-#endif

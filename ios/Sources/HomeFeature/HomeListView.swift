@@ -20,7 +20,7 @@ public struct HomeListView: View {
                     LargeCard(
                         content: topic,
                         tapAction: {
-                            viewStore.send(.selectFeedContent(topic))
+                            viewStore.send(.selectFeedContent)
                         },
                         tapFavoriteAction: {
                             viewStore.send(.tapFavorite(isFavorited: topic.isFavorited, id: topic.id))
@@ -36,7 +36,7 @@ public struct HomeListView: View {
                     ListItem(
                         content: feedContent,
                         tapAction: {
-                            viewStore.send(.selectFeedContent(feedContent))
+                            viewStore.send(.selectFeedContent)
                         },
                         tapFavoriteAction: {
                             viewStore.send(.tapFavorite(isFavorited: feedContent.isFavorited, id: feedContent.id))
@@ -45,14 +45,6 @@ public struct HomeListView: View {
                 }
             }
             .separatorStyle(ThickSeparatorStyle())
-            .sheet(
-                isPresented: viewStore.binding(
-                    get: \.isShowingWebView,
-                    send: HomeListAction.hideWebView
-                ), content: {
-                    WebView(url: viewStore.showingURL!)
-                }
-            )
         }
     }
 }

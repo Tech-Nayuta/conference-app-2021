@@ -33,9 +33,7 @@ public let homeReducer = Reducer<HomeState, HomeAction, HomeEnvironment>.combine
         state: /HomeState.initialized,
         action: /HomeAction.homeList,
         environment: {
-            .init(
-                feedRepository: $0.feedRepository
-            )
+            .init(feedRepository: $0.feedRepository)
         }
     ),
     .init { state, action, environment in

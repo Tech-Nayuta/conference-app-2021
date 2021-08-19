@@ -34,9 +34,7 @@ public let favoritesReducer = Reducer<FavoritesState, FavoritesAction, Favorites
         state: /FavoritesState.initialized,
         action: /FavoritesAction.favoritesList,
         environment: {
-            .init(
-                feedRepository: $0.feedRepository
-            )
+            .init(feedRepository: $0.feedRepository)
         }
     ),
     .init { state, action, environment in
