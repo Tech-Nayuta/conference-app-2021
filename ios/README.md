@@ -34,7 +34,6 @@ ios
 |   |   // Release Configuration project
 │   └── Release.xcodeproj/
 ├── DroidKaigi2021.xcworkspace
-├── Mintfile
 ├── Package.swift
 ├── README.md
 |   // Swift Pacakge Sources
