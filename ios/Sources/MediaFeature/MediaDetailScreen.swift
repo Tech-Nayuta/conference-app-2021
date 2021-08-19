@@ -10,14 +10,6 @@ public struct MediaDetailScreen: View {
     struct ViewState: Equatable {
         var title: String
         var contents: [FeedContent]
-
-        init(
-            title: String,
-            contents: [FeedContent] = []
-        ) {
-            self.title = title
-            self.contents = contents
-        }
     }
 
     enum ViewAction {
@@ -38,10 +30,8 @@ public struct MediaDetailScreen: View {
                     }
                 )
             }
+            .background(AssetColor.Background.primary.color.ignoresSafeArea())
             .navigationBarTitle(viewStore.title, displayMode: .inline)
-        }
-        .introspectViewController { viewController in
-            viewController.view.backgroundColor = AssetColor.Background.primary.uiColor
         }
     }
 }

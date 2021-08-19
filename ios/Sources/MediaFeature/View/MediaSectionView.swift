@@ -70,18 +70,7 @@ public struct MediaSectionView_Previews: PreviewProvider {
             ForEach(sizeCategories, id: \.self) { sizeCategory in
                 MediaSectionView(
                     type: .blog,
-                    store: .init(
-                        initialState: [
-                            .blogMock(),
-                            .blogMock(),
-                            .blogMock(),
-                            .blogMock(),
-                            .blogMock(),
-                            .blogMock(),
-                        ],
-                        reducer: .empty,
-                        environment: {}
-                    )
+                    store: .init(initialState: [.blogMock(), .blogMock(), .blogMock(), .blogMock(), .blogMock(), .blogMock()], reducer: .empty, environment: {})
                 )
                 .background(AssetColor.Background.primary.color)
                 .environment(\.sizeCategory, sizeCategory)
